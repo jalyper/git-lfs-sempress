@@ -70,6 +70,12 @@ git lfs install
 pip install git-lfs-sempress
 ```
 
+**Windows Users**: If you see "command not recognized", use:
+```powershell
+python -m git_lfs_sempress.cli init
+```
+See [Windows Installation Guide](docs/WINDOWS_INSTALL.md) for details.
+
 ## Usage
 
 ### Initialize in a repository
