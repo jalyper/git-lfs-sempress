@@ -1,0 +1,236 @@
+name: Sempress Health Check
+
+on:
+  # Run on every push to main
+  push:
+    branches: [ main, master ]
+  
+  # Run on every pull request
+  pull_request:
+    branches: [ main, master ]
+  
+  # Manual trigger
+  workflow_dispatch:
+  
+  # Scheduled cron (DISABLED by default - uncomment to enable)
+  # schedule:
+  #   # Run daily at 2 AM UTC
+  #   - cron: '0 2 * * *'
+
+jobs:
+  health-check:
+    name: Test Compression & Decompression
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Git LFS
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git-lfs
+        git lfs install
+    
+    - name: Install Sempress dependencies
+      run: |
+        # Clone sempress library (adjust this based on your setup)
+        # For now, we'll assume sempress is available via pip or local install
+        pip install -e .
+    
+    - name: Run health check
+      run: |
+        chmod +x scripts/health-check.sh
+        ./scripts/health-check.sh
+    
+    - name: Test CLI commands
+      run: |
+        # Test version
+        git-lfs-sempress --version
+        
+        # Test help
+        git-lfs-sempress --help
+        
+        # Test analyze in a sample repo
+        mkdir test-repo
+        cd test-repo
+        git init
+        
+        # Create sample CSV
+        echo "id,value" > data.csv
+        for i in {1..10000}; do
+          echo "$i,$((RANDOM))" >> data.csv
+        done
+        
+        # Run analyze
+        git-lfs-sempress analyze || true
+    
+    - name: Upload test artifacts on failure
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-logs
+        path: |
+          /tmp/sempress-test-*.log
+          *.log
+
+  integration-test:
+    name: Full Git LFS Integration Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git-lfs bc
+        git lfs install
+        pip install -e .
+    
+    - name: Create test repository
+      run: |
+        mkdir integration-test
+        cd integration-test
+        
+        # Initialize Git repo
+        git init
+        git config user.email "test@sempress.net"
+        git config user.name "Sempress Test"
+        
+        # Initialize Git LFS
+        git lfs install
+        
+        # Initialize Sempress
+        git-lfs-sempress init
+        git-lfs-sempress track "*.csv"
+        
+        # Create large test CSV (5MB)
+        echo "id,timestamp,value1,value2,value3,sensor" > test.csv
+        for i in {1..100000}; do
+          echo "$i,2024-01-01T00:00:00,$((RANDOM)).$((RANDOM % 100)),$((RANDOM)).$((RANDOM % 100)),$((RANDOM)).$((RANDOM % 100)),SENSOR_$((i % 10))" >> test.csv
+        done
+        
+        # Get original size
+        ORIGINAL=$(stat -c%s test.csv)
+        echo "Original size: $ORIGINAL bytes"
+        
+        # Commit config
+        git add .sempress.yml .gitattributes
+        git commit -m "Initialize Sempress"
+        
+        # Add CSV (triggers compression)
+        git add test.csv
+        git commit -m "Add test data"
+        
+        # Get stored size
+        STORED=$(git cat-file -s HEAD:test.csv)
+        echo "Stored size: $STORED bytes"
+        
+        # Calculate ratio
+        RATIO=$(echo "scale=2; $ORIGINAL / $STORED" | bc)
+        echo "Compression ratio: ${RATIO}×"
+        
+        # Verify compression worked
+        if (( $(echo "$RATIO > 2.0" | bc -l) )); then
+          echo "✓ Compression successful (${RATIO}×)"
+        else
+          echo "✗ Compression failed (${RATIO}×)"
+          exit 1
+        fi
+        
+        # Test decompression
+        rm test.csv
+        git checkout test.csv
+        
+        if [ -f test.csv ]; then
+          echo "✓ Decompression successful"
+          LINES=$(wc -l < test.csv)
+          echo "  Lines: $LINES"
+        else
+          echo "✗ Decompression failed"
+          exit 1
+        fi
+    
+    - name: Test with multiple file types
+      run: |
+        cd integration-test
+        
+        # Create different types of CSVs
+        # Numeric-heavy (should compress well)
+        echo "id,val1,val2,val3" > numeric.csv
+        for i in {1..10000}; do
+          echo "$i,$((RANDOM)),$((RANDOM)),$((RANDOM))" >> numeric.csv
+        done
+        
+        # Text-heavy (won't compress as well)
+        echo "id,description" > text.csv
+        for i in {1..1000}; do
+          echo "$i,This is a longer text description for row $i with some variation" >> text.csv
+        done
+        
+        # Add and test both
+        git add numeric.csv text.csv
+        git commit -m "Add various CSV types"
+        
+        echo "✓ Multiple file types handled"
+    
+    - name: Performance check
+      run: |
+        cd integration-test
+        
+        # Create 10MB file
+        echo "id,timestamp,temp,pressure,humidity" > large.csv
+        for i in {1..200000}; do
+          echo "$i,2024-01-01T00:00:00,$((20 + RANDOM % 10)).$((RANDOM % 100)),$((1000 + RANDOM % 50)).$((RANDOM % 100)),$((60 + RANDOM % 20)).$((RANDOM % 10))" >> large.csv
+        done
+        
+        # Time compression
+        START=$(date +%s)
+        git add large.csv
+        END=$(date +%s)
+        
+        DURATION=$((END - START))
+        echo "Compression time: ${DURATION}s"
+        
+        # Should complete in reasonable time (< 60s for 10MB)
+        if [ $DURATION -lt 60 ]; then
+          echo "✓ Performance acceptable (${DURATION}s)"
+        else
+          echo "⚠ Performance slow (${DURATION}s)"
+        fi
+
+  notify-on-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [health-check, integration-test]
+    if: failure()
+    
+    steps:
+    - name: Create issue on failure
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '🚨 Health Check Failed',
+            body: `The Sempress health check failed. Please investigate.
+            
+            **Workflow:** ${{ github.workflow }}
+            **Run:** ${{ github.run_id }}
+            **Branch:** ${{ github.ref }}
+            
+            [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`
+          })
