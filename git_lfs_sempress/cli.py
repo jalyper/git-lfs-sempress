@@ -283,5 +283,34 @@ def stats():
         sys.exit(1)
 
 
+@main.command()
+@click.argument('original', type=click.Path(exists=True))
+@click.argument('reconstructed', type=click.Path(exists=True))
+@click.option('--verbose', '-v', is_flag=True, help='Show detailed column-by-column metrics')
+def quality(original, reconstructed, verbose):
+    """
+    Compare original and reconstructed files for quality.
+    
+    Example: git lfs-sempress quality original.csv reconstructed.csv
+    """
+    try:
+        from .quality import compare_files
+        
+        click.echo(f"Comparing files...")
+        click.echo(f"  Original: {original}")
+        click.echo(f"  Reconstructed: {reconstructed}")
+        
+        report = compare_files(original, reconstructed, verbose=verbose)
+        
+        # Exit with error code if there are issues
+        if report['has_critical_issues'] or report['has_errors']:
+            sys.exit(1)
+        
+    except Exception as e:
+        click.echo(f"❌ Quality check failed: {e}", err=True)
+        logger.error(f"Quality check error: {e}", exc_info=True)
+        sys.exit(1)
+
+
 if __name__ == '__main__':
     main()
