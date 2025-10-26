@@ -7,7 +7,7 @@
 
 **Automatic semantic compression for Git LFS**
 
-Compress CSV files 8-12× better than gzip with zero workflow changes.
+Compress CSV files 8-12× better than gzip with zero workflow changes. **NEW:** Image compression support coming soon!
 
 [📖 Documentation](https://sempress.net/paper.pdf) • [🚀 Quick Start](#quick-start) • [💬 Discussions](https://github.com/jalyper/git-lfs-sempress/discussions) • [🐛 Issues](https://github.com/jalyper/git-lfs-sempress/issues)
 
@@ -37,6 +37,7 @@ git commit -m "Add training data"
 - 📈 **Compression stats** - see savings after each commit
 - ✅ **Fully tested** - 14 automated tests, all passing
 - 🌐 **Multi-format ready** - CSV today, Parquet/JSON coming soon
+- 🖼️ **NEW: Image support** - Medical, satellite, scientific images (experimental)
 
 ## Real Results
 
@@ -192,8 +193,22 @@ Sempress uses Git's clean/smudge filter protocol:
 
 MIT License - see [LICENSE](LICENSE)
 
+## What's New
+
+### January 2025: Image Compression (Experimental)
+
+Sempress now supports **image compression** using patch-based vector quantization:
+- Medical images: 15-21× compression with clinical quality
+- Satellite data: 4-6× compression competitive with JPEG
+- Scientific visualizations: 4-6× compression on heatmaps
+
+**[→ Learn more about image compression](https://github.com/jalyper/sempress/blob/main/docs/image_compression.md)**
+
+Image support in Git LFS plugin coming in v0.3.0. Stay tuned!
+
 ## Links
 
 - **Website**: https://sempress.net
 - **Paper**: https://sempress.net/paper.pdf
-- **GitHub**: https://github.com/jalyper/git-lfs-sempress
+- **Main Repository**: https://github.com/jalyper/sempress
+- **Git LFS Plugin**: https://github.com/jalyper/git-lfs-sempress
