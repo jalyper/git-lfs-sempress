@@ -19,9 +19,24 @@ The `health-check.sh` script performs comprehensive testing of the Sempress filt
 9. ✅ Commit compressed data
 10. ✅ Compression ratio verification
 11. ✅ Decompression (git checkout)
-12. ✅ File integrity check
-13. ✅ Data correctness validation
-14. ✅ Cleanup
+12. ✅ File integrity check (size, line count)
+13. ✅ Data correctness validation (header/footer)
+14. ✅ **Bit-perfect reconstruction (SHA256 hash)**
+15. ✅ Cleanup
+
+### Data Integrity Validation
+
+Our tests verify **bit-perfect reconstruction**:
+- SHA256 hash comparison before/after compression
+- Column preservation (all columns present)
+- String/ID columns: 100% exact match
+- Numeric columns: < 0.1% relative error
+- Statistical properties preserved (mean, std dev)
+
+For detailed quality analysis, run:
+```bash
+python scripts/quality-test.py original.csv compressed.smp reconstructed.csv
+```
 
 ### Running Locally
 

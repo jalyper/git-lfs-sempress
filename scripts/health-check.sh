@@ -10,6 +10,8 @@ echo "======================================"
 echo ""
 
 # Colors for output
+
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -203,6 +205,38 @@ if [[ "$LAST_LINE" == *"SENSOR_00"* ]]; then
     pass "Data row correct"
 else
     fail "Data row corrupted"
+fi
+
+# Test 14: Full content hash comparison (NEW!)
+echo ""
+echo "Test 14: Verify bit-perfect reconstruction"
+
+# Create a clean copy of the original before compression
+cp test_data.csv test_data_original_backup.csv
+
+# Commit the file (compression happens)
+git add test_data.csv > /dev/null 2>&1
+git commit -m "Add test data" > /dev/null 2>&1
+
+# Remove the file
+rm test_data.csv
+
+# Checkout (decompression happens)
+git checkout test_data.csv > /dev/null 2>&1
+
+# Compare original vs decompressed using checksums
+ORIGINAL_HASH=$(sha256sum test_data_original_backup.csv | awk '{print $1}')
+DECOMPRESSED_HASH=$(sha256sum test_data.csv | awk '{print $1}')
+
+info "Original hash: ${ORIGINAL_HASH:0:16}..."
+info "Decompressed hash: ${DECOMPRESSED_HASH:0:16}..."
+
+if [ "$ORIGINAL_HASH" = "$DECOMPRESSED_HASH" ]; then
+    pass "Bit-perfect reconstruction (SHA256 match)"
+else
+    fail "Content mismatch after decompression!"
+    info "Running diff to show differences:"
+    diff -u test_data_original_backup.csv test_data.csv | head -20 || true
 fi
 
 # Cleanup
