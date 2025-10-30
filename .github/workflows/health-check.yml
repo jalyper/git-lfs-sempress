@@ -13,9 +13,9 @@ on:
   workflow_dispatch:
   
   # Scheduled cron (DISABLED by default - uncomment to enable)
-  # schedule:
-  #   # Run daily at 2 AM UTC
-  #   - cron: '0 2 * * *'
+  schedule:
+  # Run daily at 2 AM UTC
+  - cron: '0 2 * * *'
 
 jobs:
   health-check:
