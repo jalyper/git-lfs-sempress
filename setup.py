@@ -32,6 +32,7 @@ setup(
         "scikit-learn>=1.3",
         "msgpack>=1.0",
         "zstandard>=0.20",
+        "sempress @ git+https://github.com/jalyper/sempress.git",
     ],
     entry_points={
         "console_scripts": [

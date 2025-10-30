@@ -39,9 +39,18 @@ jobs:
     
     - name: Install Sempress dependencies
       run: |
-        # Clone sempress library (adjust this based on your setup)
-        # For now, we'll assume sempress is available via pip or local install
+        # Upgrade pip and setuptools
+        python -m pip install --upgrade pip setuptools wheel
+        # Install sempress core library first
+        pip install git+https://github.com/jalyper/sempress.git
+        # Install the git-lfs plugin with all dependencies
         pip install -e .
+        # Verify installation
+        echo "Checking installation..."
+        pip list | grep -E "(sempress|git-lfs)"
+        which git-lfs-sempress || echo "WARNING: git-lfs-sempress not in PATH"
+        python -c "import git_lfs_sempress; print(f'Module loaded: {git_lfs_sempress.__version__}')"
+        python -c "from sempress import encode_csv; print('Sempress core library OK')"
     
     - name: Run health check
       run: |
@@ -97,6 +106,9 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y git-lfs bc
         git lfs install
+        # Install sempress core library first
+        pip install git+https://github.com/jalyper/sempress.git
+        # Install git-lfs-sempress plugin
         pip install -e .
     
     - name: Create test repository
