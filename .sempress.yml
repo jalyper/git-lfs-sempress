@@ -1,0 +1,39 @@
+version: 1
+
+# Compression settings
+compression:
+  # Codebook size (higher = better compression, slower)
+  k: 64
+  
+  # Uncertainty threshold for quality tracking
+  uncertainty_threshold: 0.2
+  
+  # Auto-detect ID and timestamp columns for lossless storage
+  auto_lock: true
+  
+  # Additional columns to preserve losslessly
+  lock_cols:
+    - id
+    - user_id
+    - timestamp
+    - created_at
+  
+  # High-precision columns (store residuals)
+  residual_cols:
+    - amount
+    - price
+    - balance
+
+# File processing thresholds
+thresholds:
+  # Only compress files larger than this (MB)
+  min_size_mb: 1
+  
+  # Skip compression if ratio is below this
+  min_compression_ratio: 1.5
+
+# Optional: S3 backup (Pro feature)
+# backup:
+#   enabled: false
+#   s3_bucket: my-lfs-backup
+#   region: us-west-2
