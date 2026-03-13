@@ -29,7 +29,7 @@ class QualityReport:
             self.issues.append({
                 'severity': 'CRITICAL',
                 'type': 'shape_mismatch',
-                'message': f"Shape changed: {self.original.shape} → {self.reconstructed.shape}",
+                'message': f"Shape changed: {self.original.shape} -> {self.reconstructed.shape}",
                 'fix': "This should never happen. Please report as a bug."
             })
             return self._build_report()
@@ -82,7 +82,7 @@ class QualityReport:
                 # Show examples of differences
                 diff_idx = (orig != recon).idxmax()
                 if diff_idx is not None:
-                    self.issues[-1]['example'] = f"Row {diff_idx}: '{orig[diff_idx]}' → '{recon[diff_idx]}'"
+                    self.issues[-1]['example'] = f"Row {diff_idx}: '{orig[diff_idx]}' -> '{recon[diff_idx]}'"
             
             self.metrics[col] = {'type': 'string', 'match_pct': match_pct}
         
@@ -195,49 +195,49 @@ class QualityReport:
         
         # Overall score
         similarity = report['similarity_score']
-        print(f"\n📊 Overall Similarity: {similarity:.2f}%")
+        print(f"\nOverall Similarity: {similarity:.2f}%")
         
         if similarity == 100:
-            print("✓ Perfect reconstruction - all data preserved exactly!")
+            print("OK: Perfect reconstruction - all data preserved exactly!")
         elif similarity >= 99.9:
-            print("✓ Excellent quality - virtually lossless")
+            print("OK: Excellent quality - virtually lossless")
         elif similarity >= 99:
-            print("⚠ Good quality - minor variations detected")
+            print("Warning: Good quality - minor variations detected")
         elif similarity >= 95:
-            print("⚠ Acceptable quality - some variations detected")
+            print("Warning: Acceptable quality - some variations detected")
         else:
-            print("✗ Poor quality - significant variations detected")
+            print("FAIL: Poor quality - significant variations detected")
         
         # Critical issues
         if report['has_critical_issues']:
-            print("\n🚨 CRITICAL ISSUES:")
+            print("\nCRITICAL ISSUES:")
             for issue in report['issues']:
                 if issue['severity'] == 'CRITICAL':
-                    print(f"  ✗ {issue['message']}")
+                    print(f"  FAIL: {issue['message']}")
                     print(f"    Fix: {issue['fix']}")
         
         # Errors
         if report['has_errors']:
-            print("\n❌ ERRORS:")
+            print("\nError: ERRORS:")
             for issue in report['issues']:
                 if issue['severity'] == 'ERROR':
-                    print(f"  ✗ {issue['message']}")
+                    print(f"  FAIL: {issue['message']}")
                     if 'example' in issue:
                         print(f"    Example: {issue['example']}")
                     print(f"    Fix: {issue['fix']}")
         
         # Warnings
         if report['has_warnings']:
-            print("\n⚠️  WARNINGS:")
+            print("\nWarning: WARNINGS:")
             for warning in report['warnings']:
-                print(f"  ⚠ {warning['message']}")
+                print(f"  Warning: {warning['message']}")
                 if verbose and 'details' in warning:
                     print(f"    {warning['details']}")
                 print(f"    {warning['fix']}")
         
         # Column-by-column (verbose only)
         if verbose and not report['has_critical_issues']:
-            print("\n📋 COLUMN DETAILS:")
+            print("\nCOLUMN DETAILS:")
             for col, metrics in report['column_metrics'].items():
                 if col == 'overall_similarity':
                     continue
@@ -245,24 +245,24 @@ class QualityReport:
                 if metrics['type'] == 'string':
                     match_pct = metrics['match_pct']
                     if match_pct == 100:
-                        print(f"  ✓ {col} (string): 100% exact match")
+                        print(f"  OK: {col} (string): 100% exact match")
                     else:
-                        print(f"  ✗ {col} (string): {match_pct:.2f}% match")
+                        print(f"  FAIL: {col} (string): {match_pct:.2f}% match")
                 
                 elif metrics['type'] == 'numeric':
                     rel_err = metrics['relative_error']
                     exact_pct = metrics['exact_match_pct']
                     
                     if exact_pct == 100:
-                        print(f"  ✓ {col} (numeric): 100% exact match")
+                        print(f"  OK: {col} (numeric): 100% exact match")
                     elif rel_err < 0.1:
-                        print(f"  ✓ {col} (numeric): {rel_err:.4f}% error, {exact_pct:.1f}% exact")
+                        print(f"  OK: {col} (numeric): {rel_err:.4f}% error, {exact_pct:.1f}% exact")
                     else:
-                        print(f"  ⚠ {col} (numeric): {rel_err:.4f}% error, {exact_pct:.1f}% exact")
+                        print(f"  Warning: {col} (numeric): {rel_err:.4f}% error, {exact_pct:.1f}% exact")
         
         # Recommendations
         if report['has_errors'] or report['has_warnings']:
-            print("\n💡 RECOMMENDATIONS:")
+            print("\nRECOMMENDATIONS:")
             print("  1. Edit .sempress.yml in your repository")
             print("  2. Add problematic columns to lock_cols or residual_cols")
             print("  3. Commit the updated config")

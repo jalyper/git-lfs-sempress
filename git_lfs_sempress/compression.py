@@ -71,7 +71,7 @@ class SempressCompressor:
             compressed_size = len(compressed_blob)
             ratio = original_size / compressed_size if compressed_size > 0 else 0
             
-            logger.info(f"Compression complete: {original_size} → {compressed_size} bytes ({ratio:.2f}×)")
+            logger.info(f"Compression complete: {original_size} -> {compressed_size} bytes ({ratio:.2f}x)")
             
             return compressed_blob
             
@@ -106,7 +106,7 @@ class SempressCompressor:
             with open(csv_path, 'rb') as f:
                 csv_data = f.read()
             
-            logger.info(f"Decompression complete: {len(smp_data)} → {len(csv_data)} bytes")
+            logger.info(f"Decompression complete: {len(smp_data)} -> {len(csv_data)} bytes")
             
             return csv_data
             
@@ -131,7 +131,7 @@ class SempressCompressor:
         
         size_mb = len(csv_data) / (1024 * 1024)
         
-        # Baseline estimate: 3-5× for typical numeric CSVs
+        # Baseline estimate: 3-5x for typical numeric CSVs
         if size_mb < 1:
             return 2.5  # Small files don't compress as well
         elif size_mb < 10:

@@ -29,7 +29,7 @@ class SempressFilter:
     
     def clean(self, input_stream=None, filename: Optional[str] = None) -> bytes:
         """
-        Clean filter: compress CSV → .smp for Git LFS storage.
+        Clean filter: compress CSV -> .smp for Git LFS storage.
         Called when staging files (git add).
         
         Args:
@@ -67,10 +67,10 @@ class SempressFilter:
                 # Verify compression is beneficial
                 actual_ratio = len(csv_data) / len(compressed_data)
                 if actual_ratio < self.config.get_thresholds().get('min_compression_ratio', 1.5):
-                    logger.warning(f"Actual compression ratio too low ({actual_ratio:.2f}×), using original")
+                    logger.warning(f"Actual compression ratio too low ({actual_ratio:.2f}x), using original")
                     return csv_data
                 
-                logger.info(f"✓ Compressed: {len(csv_data)} → {len(compressed_data)} bytes ({actual_ratio:.2f}×)")
+                logger.info(f"OK: Compressed: {len(csv_data)} -> {len(compressed_data)} bytes ({actual_ratio:.2f}x)")
                 return compressed_data
                 
             except Exception as e:
@@ -84,7 +84,7 @@ class SempressFilter:
     
     def smudge(self, input_stream=None, filename: Optional[str] = None) -> bytes:
         """
-        Smudge filter: decompress .smp → CSV for working tree.
+        Smudge filter: decompress .smp -> CSV for working tree.
         Called when checking out files (git checkout).
         
         Args:
@@ -117,7 +117,7 @@ class SempressFilter:
             # Try to decompress
             try:
                 csv_data = self.compressor.decompress(input_data)
-                logger.info(f"✓ Decompressed: {len(input_data)} → {len(csv_data)} bytes")
+                logger.info(f"OK: Decompressed: {len(input_data)} -> {len(csv_data)} bytes")
                 return csv_data
                 
             except Exception as e:

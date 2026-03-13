@@ -170,7 +170,7 @@ class FormatConverter:
         # Save to CSV
         df.to_csv(csv_path, index=False)
         
-        logger.info(f"Converted image to CSV: {width}×{height} = {len(rows)} pixels")
+        logger.info(f"Converted image to CSV: {width}x{height} = {len(rows)} pixels")
         
         return {
             'format': 'image',
@@ -218,7 +218,7 @@ class FormatConverter:
         original_format = metadata.get('original_format', 'PNG')
         img.save(image_path, format=original_format)
         
-        logger.info(f"Reconstructed image: {width}×{height} as {original_format}")
+        logger.info(f"Reconstructed image: {width}x{height} as {original_format}")
 
 
 class MultiFormatCompressor:

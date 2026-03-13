@@ -159,7 +159,7 @@ class Config:
         # Check minimum compression ratio
         min_ratio = thresholds.get('min_compression_ratio', 1.5)
         if estimated_ratio < min_ratio:
-            logger.info(f"Compression ratio too low ({estimated_ratio:.2f}× < {min_ratio}×), skipping")
+            logger.info(f"Compression ratio too low ({estimated_ratio:.2f}x < {min_ratio}x), skipping")
             return False
         
         return True

@@ -29,7 +29,7 @@ def main(verbose):
 @click.argument('filename', required=False)
 def clean(filename):
     """
-    Clean filter: compress CSV → .smp (called by Git internally).
+    Clean filter: compress CSV -> .smp (called by Git internally).
     
     Usage: git-lfs-sempress clean %f
     """
@@ -40,7 +40,7 @@ def clean(filename):
 @click.argument('filename', required=False)
 def smudge(filename):
     """
-    Smudge filter: decompress .smp → CSV (called by Git internally).
+    Smudge filter: decompress .smp -> CSV (called by Git internally).
     
     Usage: git-lfs-sempress smudge %f
     """
@@ -60,18 +60,18 @@ def init():
     try:
         # Check if we're in a Git repo
         if not (Path.cwd() / '.git').exists():
-            click.echo("❌ Not a Git repository. Run 'git init' first.", err=True)
+            click.echo("Error: Not a Git repository. Run 'git init' first.", err=True)
             sys.exit(1)
         
-        click.echo("🚀 Initializing Sempress LFS filter...\n")
+        click.echo("Initializing Sempress LFS filter...\n")
         
         # Create .sempress.yml
         config_path = Path.cwd() / '.sempress.yml'
         if config_path.exists():
-            click.echo(f"✓ Config file already exists: {config_path}")
+            click.echo(f"OK: Config file already exists: {config_path}")
         else:
             Config.create_default_config(config_path)
-            click.echo(f"✓ Created config file: {config_path}")
+            click.echo(f"OK: Created config file: {config_path}")
         
         # Configure Git filter
         import subprocess
@@ -85,25 +85,25 @@ def init():
         for cmd in commands:
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
-                click.echo(f"❌ Failed to configure Git: {result.stderr}", err=True)
+                click.echo(f"Error: Failed to configure Git: {result.stderr}", err=True)
                 sys.exit(1)
         
-        click.echo("✓ Git filter configured")
+        click.echo("OK: Git filter configured")
         
         # Check .gitattributes
         gitattributes = Path.cwd() / '.gitattributes'
         if not gitattributes.exists():
-            click.echo(f"\n📝 Next steps:")
+            click.echo(f"\nNext steps:")
             click.echo(f"  1. Track CSV files: git lfs-sempress track \"*.csv\"")
             click.echo(f"  2. Add and commit: git add .sempress.yml && git commit -m \"Add Sempress compression\"")
         else:
-            click.echo(f"\n✓ .gitattributes exists")
+            click.echo(f"\nOK: .gitattributes exists")
             click.echo(f"  Run 'git lfs-sempress track \"*.csv\"' to track CSV files")
         
-        click.echo(f"\n✅ Sempress initialized successfully!")
+        click.echo(f"\nSempress initialized successfully!")
         
     except Exception as e:
-        click.echo(f"❌ Initialization failed: {e}", err=True)
+        click.echo(f"Error: Initialization failed: {e}", err=True)
         sys.exit(1)
 
 
@@ -125,19 +125,19 @@ def track(pattern):
         if gitattributes.exists():
             content = gitattributes.read_text()
             if pattern in content and 'lfs-sempress' in content:
-                click.echo(f"✓ Pattern '{pattern}' already tracked")
+                click.echo(f"OK: Pattern '{pattern}' already tracked")
                 return
         
         # Append to .gitattributes
         with open(gitattributes, 'a') as f:
             f.write(line)
         
-        click.echo(f"✓ Now tracking: {pattern}")
+        click.echo(f"OK: Now tracking: {pattern}")
         click.echo(f"  Files matching this pattern will be compressed automatically")
-        click.echo(f"\n📝 Next: git add .gitattributes && git commit -m \"Track {pattern} with Sempress\"")
+        click.echo(f"\nNext: git add .gitattributes && git commit -m \"Track {pattern} with Sempress\"")
         
     except Exception as e:
-        click.echo(f"❌ Failed to track pattern: {e}", err=True)
+        click.echo(f"Error: Failed to track pattern: {e}", err=True)
         sys.exit(1)
 
 
@@ -149,7 +149,7 @@ def analyze():
     try:
         import glob
         
-        click.echo("🔍 Analyzing repository for CSV files...\n")
+        click.echo("Analyzing repository for CSV files...\n")
         
         # Find all CSV files
         csv_files = list(Path.cwd().rglob('*.csv'))
@@ -192,16 +192,16 @@ def analyze():
         total_mb = total_size / (1024 * 1024)
         total_gb = total_size / (1024 * 1024 * 1024)
         
-        # Estimate compression (average 6× ratio for numeric CSV)
+        # Estimate compression (average 6x ratio for numeric CSV)
         estimated_ratio = 6.0
         compressed_size = total_size / estimated_ratio
         compressed_mb = compressed_size / (1024 * 1024)
         savings_pct = ((total_size - compressed_size) / total_size) * 100
         
-        click.echo(f"\n📊 Summary:")
+        click.echo(f"\nSummary:")
         click.echo(f"  Total size: {total_gb:.2f} GB ({total_mb:.0f} MB)")
         click.echo(f"  Estimated compressed: {compressed_mb:.0f} MB")
-        click.echo(f"  Estimated ratio: {estimated_ratio}×")
+        click.echo(f"  Estimated ratio: {estimated_ratio}x")
         click.echo(f"  Potential savings: {savings_pct:.0f}%")
         
         # Storage cost estimate ($0.023/GB/month for GitHub LFS)
@@ -209,15 +209,15 @@ def analyze():
         monthly_cost_after = (compressed_size / (1024**3)) * 0.023
         monthly_savings = monthly_cost_before - monthly_cost_after
         
-        click.echo(f"\n💰 Estimated storage cost (GitHub LFS pricing):")
+        click.echo(f"\nEstimated storage cost (GitHub LFS pricing):")
         click.echo(f"  Current: ${monthly_cost_before:.2f}/month")
         click.echo(f"  After compression: ${monthly_cost_after:.2f}/month")
         click.echo(f"  Savings: ${monthly_savings:.2f}/month")
         
-        click.echo(f"\n✨ Run 'git lfs-sempress init' to get started!")
+        click.echo(f"\nRun 'git lfs-sempress init' to get started!")
         
     except Exception as e:
-        click.echo(f"❌ Analysis failed: {e}", err=True)
+        click.echo(f"Error: Analysis failed: {e}", err=True)
         logger.error(f"Analysis error: {e}", exc_info=True)
         sys.exit(1)
 
@@ -238,16 +238,16 @@ def stats():
         )
         
         if result.returncode != 0 or not result.stdout.strip():
-            click.echo("❌ Sempress filter not configured. Run 'git lfs-sempress init' first.")
+            click.echo("Sempress filter not configured. Run 'git lfs-sempress init' first.")
             return
         
-        click.echo("📊 Sempress Statistics\n")
-        click.echo("✓ Filter configured: Yes")
+        click.echo("Sempress Statistics\n")
+        click.echo("OK: Filter configured: Yes")
         
         # Check for .sempress.yml
         config_path = Path.cwd() / '.sempress.yml'
         if config_path.exists():
-            click.echo(f"✓ Config file: {config_path}")
+            click.echo(f"OK: Config file: {config_path}")
             
             # Load and display config
             config = Config(config_path)
@@ -257,7 +257,7 @@ def stats():
             click.echo(f"    Uncertainty threshold: {comp_config.get('uncertainty_threshold', 0.2)}")
             click.echo(f"    Lock columns: {comp_config.get('lock_cols', []) or 'auto-detect'}")
         else:
-            click.echo("⚠ Config file: Not found (using defaults)")
+            click.echo("  Config file: Not found (using defaults)")
         
         # Check .gitattributes
         gitattributes = Path.cwd() / '.gitattributes'
@@ -267,19 +267,19 @@ def stats():
                        if 'lfs-sempress' in line and line.strip()]
             
             if patterns:
-                click.echo(f"\n✓ Tracked patterns ({len(patterns)}):")
+                click.echo(f"\nOK: Tracked patterns ({len(patterns)}):")
                 for pattern in patterns:
                     click.echo(f"    {pattern}")
             else:
-                click.echo(f"\n⚠ No files tracked yet")
+                click.echo(f"\nWarning: No files tracked yet")
                 click.echo(f"  Run 'git lfs-sempress track \"*.csv\"' to start")
         else:
-            click.echo(f"\n⚠ .gitattributes: Not found")
+            click.echo(f"\nWarning: .gitattributes: Not found")
         
         click.echo()
         
     except Exception as e:
-        click.echo(f"❌ Failed to get stats: {e}", err=True)
+        click.echo(f"Error: Failed to get stats: {e}", err=True)
         sys.exit(1)
 
 
@@ -307,7 +307,7 @@ def quality(original, reconstructed, verbose):
             sys.exit(1)
         
     except Exception as e:
-        click.echo(f"❌ Quality check failed: {e}", err=True)
+        click.echo(f"Error: Quality check failed: {e}", err=True)
         logger.error(f"Quality check error: {e}", exc_info=True)
         sys.exit(1)
 

@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="git-lfs-sempress",
-    version="0.1.0",
+    version="0.1.1",
     author="Keaton Anderson",
     author_email="research@sempress.net",
     description="Git LFS filter for semantic compression of CSV files",
@@ -25,6 +25,7 @@ setup(
     ],
     python_requires=">=3.10",
     install_requires=[
+        "sempress>=0.3.0",
         "click>=8.0",
         "pyyaml>=6.0",
         "pandas>=2.0",
@@ -32,7 +33,6 @@ setup(
         "scikit-learn>=1.3",
         "msgpack>=1.0",
         "zstandard>=0.20",
-        "sempress @ git+https://github.com/jalyper/sempress-core.git",
     ],
     entry_points={
         "console_scripts": [
